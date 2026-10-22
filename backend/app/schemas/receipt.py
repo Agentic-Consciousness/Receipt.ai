@@ -96,7 +96,7 @@ class LLMReceiptSchema(BaseModel):
             from datetime import datetime
 
             # strptime alone also accepts unpadded months and days such as 2024-1-5.
-            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+            if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", v):
                 raise ValueError("Date must be in YYYY-MM-DD format")
             try:
                 datetime.strptime(v, "%Y-%m-%d")
