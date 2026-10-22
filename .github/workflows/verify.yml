@@ -1,0 +1,55 @@
+name: Verify
+
+# The backend test suite and the frontend production build, on the personal runner pool. There was no earlier
+# pipeline for this repository. Runs only when the organisation variable PERSONAL_GITHUB_CI_ENABLED is 'true'.
+# Pull requests from forks never run here: the self-hosted runners only take this repository's own branches.
+# Nothing deploys and no secrets are used.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    if: ${{ vars.PERSONAL_GITHUB_CI_ENABLED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    name: Backend tests
+    runs-on: [personal-official]
+    container:
+      image: python:3.11-bookworm
+      options: --init --cpus 2 --memory 4g
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+      - name: Trust the checked-out workspace
+        # The job container's user differs from the checkout's owner, so git refuses to read it otherwise.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Run the backend tests
+        run: bash .github/scripts/verify-backend.sh
+
+  frontend:
+    if: ${{ vars.PERSONAL_GITHUB_CI_ENABLED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    name: Frontend build
+    runs-on: [personal-official]
+    container:
+      image: node:24-bookworm
+      options: --init --cpus 2 --memory 4g
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+      - name: Trust the checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Build the frontend
+        run: bash .github/scripts/verify-frontend.sh
