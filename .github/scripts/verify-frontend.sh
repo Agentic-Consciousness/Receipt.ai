@@ -9,7 +9,7 @@ case "${GITHUB_REPOSITORY:?}" in
   *) echo "Unexpected repository: $GITHUB_REPOSITORY" >&2; exit 1 ;;
 esac
 test "$(git rev-parse HEAD)" = "${GITHUB_SHA:?}"
-node -e 'if (process.versions.node.split(".")[0] !== "24") throw Error("Use the Node 24 runtime the frontend Dockerfile uses")'
+node -e 'if (process.versions.node.split(".")[0] !== "20") throw Error("Use the Node 20 runtime the frontend Dockerfiles use")'
 export CI=1
 cd frontend
 npm install --no-audit --no-fund

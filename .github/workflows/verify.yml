@@ -42,7 +42,7 @@ jobs:
     name: Frontend build
     runs-on: [personal-official]
     container:
-      image: node:24-bookworm
+      image: node:20-bookworm
       options: --init --cpus 2 --memory 4g
     timeout-minutes: 30
     steps:
