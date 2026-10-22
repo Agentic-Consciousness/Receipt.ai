@@ -92,8 +92,12 @@ class LLMReceiptSchema(BaseModel):
     def validate_date_format(cls, v):
         """Validate date is in YYYY-MM-DD format."""
         if v is not None:
+            import re
             from datetime import datetime
 
+            # strptime alone also accepts unpadded months and days such as 2024-1-5.
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+                raise ValueError("Date must be in YYYY-MM-DD format")
             try:
                 datetime.strptime(v, "%Y-%m-%d")
             except ValueError:
