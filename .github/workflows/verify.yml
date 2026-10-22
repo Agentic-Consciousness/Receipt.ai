@@ -6,7 +6,9 @@ name: Verify
 # Nothing deploys and no secrets are used.
 on:
   pull_request:
-    branches: [main]
+    # ci/github-verify is included so a pull request into this branch runs the same
+    # jobs. Push is still only main; the runners are unchanged.
+    branches: [main, ci/github-verify]
   push:
     branches: [main]
   workflow_dispatch:

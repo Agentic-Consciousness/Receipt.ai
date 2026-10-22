@@ -95,8 +95,12 @@ class LLMReceiptSchema(BaseModel):
             from datetime import datetime
 
             try:
-                datetime.strptime(v, "%Y-%m-%d")
+                parsed = datetime.strptime(v, "%Y-%m-%d")
             except ValueError:
+                raise ValueError("Date must be in YYYY-MM-DD format")
+            # strptime accepts unpadded month and day ("2024-1-5"). The schema
+            # requires a zero-padded YYYY-MM-DD string.
+            if parsed.strftime("%Y-%m-%d") != v:
                 raise ValueError("Date must be in YYYY-MM-DD format")
         return v
 

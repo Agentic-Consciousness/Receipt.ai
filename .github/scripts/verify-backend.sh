@@ -12,5 +12,7 @@ test "$(git rev-parse HEAD)" = "${GITHUB_SHA:?}"
 python -c 'import sys; assert sys.version_info[:2] == (3, 11), "Use the Python 3.11 runtime the backend Dockerfile uses"'
 export PIP_DISABLE_PIP_VERSION_CHECK=1
 cd backend
-python -m pip install --no-cache-dir -r requirements.txt
+# The image installs requirements.txt. This suite also needs the sqlite async driver
+# listed in requirements-dev.txt, which is not a runtime dependency.
+python -m pip install --no-cache-dir -r requirements-dev.txt
 python -m pytest -v

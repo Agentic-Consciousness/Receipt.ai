@@ -1,10 +1,8 @@
 """Tests for attachment hash stability and deduplication."""
 import hashlib
-import os
 import tempfile
-import pytest
 
-from app.services.attachment import AttachmentService
+from app.services.attachment import AttachmentService, settings as attachment_settings
 
 
 class TestAttachmentHashStability:
@@ -76,49 +74,39 @@ class TestAttachmentHashStability:
 class TestStoragePathGeneration:
     """Test that storage paths are generated correctly."""
 
-    def test_storage_path_structure(self, sync_session):
+    def test_storage_path_structure(self, sync_session, monkeypatch):
         """Storage path should use hash-based directory structure."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Mock the storage path
-            original_path = os.environ.get("ATTACHMENT_STORAGE_PATH", "")
-            os.environ["ATTACHMENT_STORAGE_PATH"] = tmpdir
+            # Settings are captured at import, so a later env change is ignored.
+            monkeypatch.setattr(attachment_settings, "attachment_storage_path", tmpdir)
 
-            try:
-                service = AttachmentService(sync_session)
-                content = b"Test receipt content"
-                sha256_hash = AttachmentService.compute_hash(content)
+            service = AttachmentService(sync_session)
+            content = b"Test receipt content"
+            sha256_hash = AttachmentService.compute_hash(content)
 
-                path = service._get_storage_path(sha256_hash, "receipt.pdf")
+            path = service._get_storage_path(sha256_hash, "receipt.pdf")
 
-                # Should be structured as ab/cd/abcdef...pdf
-                parts = path.split("/")
-                assert len(parts) == 3
-                assert parts[0] == sha256_hash[:2]
-                assert parts[1] == sha256_hash[2:4]
-                assert parts[2].startswith(sha256_hash)
-                assert parts[2].endswith(".pdf")
+            # Should be structured as ab/cd/abcdef...pdf
+            parts = path.split("/")
+            assert len(parts) == 3
+            assert parts[0] == sha256_hash[:2]
+            assert parts[1] == sha256_hash[2:4]
+            assert parts[2].startswith(sha256_hash)
+            assert parts[2].endswith(".pdf")
 
-            finally:
-                os.environ["ATTACHMENT_STORAGE_PATH"] = original_path
-
-    def test_extension_preserved(self, sync_session):
+    def test_extension_preserved(self, sync_session, monkeypatch):
         """File extension should be preserved in storage path."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            original_path = os.environ.get("ATTACHMENT_STORAGE_PATH", "")
-            os.environ["ATTACHMENT_STORAGE_PATH"] = tmpdir
+            monkeypatch.setattr(attachment_settings, "attachment_storage_path", tmpdir)
 
-            try:
-                service = AttachmentService(sync_session)
-                sha256_hash = "a" * 64
+            service = AttachmentService(sync_session)
+            sha256_hash = "a" * 64
 
-                # Test different extensions
-                pdf_path = service._get_storage_path(sha256_hash, "receipt.pdf")
-                png_path = service._get_storage_path(sha256_hash, "image.png")
-                jpg_path = service._get_storage_path(sha256_hash, "photo.JPG")
+            # Test different extensions
+            pdf_path = service._get_storage_path(sha256_hash, "receipt.pdf")
+            png_path = service._get_storage_path(sha256_hash, "image.png")
+            jpg_path = service._get_storage_path(sha256_hash, "photo.JPG")
 
-                assert pdf_path.endswith(".pdf")
-                assert png_path.endswith(".png")
-                assert jpg_path.endswith(".jpg")
-
-            finally:
-                os.environ["ATTACHMENT_STORAGE_PATH"] = original_path
+            assert pdf_path.endswith(".pdf")
+            assert png_path.endswith(".png")
+            assert jpg_path.endswith(".jpg")

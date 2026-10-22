@@ -1,0 +1,5 @@
+# Test-only extras. The runtime image installs requirements.txt (PostgreSQL).
+# The pytest suite points DATABASE_URL at sqlite+aiosqlite, and SQLAlchemy
+# imports aiosqlite when that dialect loads. pytest is already in requirements.txt.
+-r requirements.txt
+aiosqlite==0.22.1
