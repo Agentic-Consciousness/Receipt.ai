@@ -29,7 +29,7 @@ msal==1.38.0
 # Data processing
 pydantic==2.6.1
 pydantic-settings==2.1.0
-python-dateutil==2.8.2
+python-dateutil==3.0.0
 
 # File handling
 python-magic==0.4.27
