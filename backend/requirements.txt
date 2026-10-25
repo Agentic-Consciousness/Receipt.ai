@@ -33,7 +33,7 @@ python-dateutil==2.8.2
 
 # File handling
 python-magic==0.4.27
-Pillow==12.3.0
+Pillow==13.0.0
 
 # Optional LLM support
 openai==1.12.0
