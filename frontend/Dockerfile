@@ -1,5 +1,5 @@
 # Frontend Dockerfile - Development
-FROM node:20-slim
+FROM node:26-slim
 
 WORKDIR /app
 
