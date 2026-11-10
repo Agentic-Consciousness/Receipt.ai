@@ -1,8 +1,9 @@
 name: Verify
 
-# The backend test suite and the frontend production build, on the personal runner pool. There was no earlier
-# pipeline for this repository. Runs only when the organisation variable PERSONAL_GITHUB_CI_ENABLED is 'true'.
-# Pull requests from forks never run here: the self-hosted runners only take this repository's own branches.
+# Backend tests and the frontend production build.
+# pull_request runs the workflow file from the pull request, including forks, so an
+# outsider can change it. These jobs stay on GitHub-hosted runners. A self-hosted
+# runner would execute that untrusted code on a private machine.
 # Nothing deploys and no secrets are used.
 on:
   pull_request:
@@ -20,36 +21,34 @@ permissions:
 
 jobs:
   backend:
-    if: ${{ vars.PERSONAL_GITHUB_CI_ENABLED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: Backend tests
-    runs-on: [personal-official]
-    container:
-      image: python:3.11-bookworm
-      options: --init --cpus 2 --memory 4g
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Trust the checked-out workspace
-        # The job container's user differs from the checkout's owner, so git refuses to read it otherwise.
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Set up Python 3.11
+        # The verify script requires the same Python the backend image uses.
+        # ubuntu-latest does not provide 3.11.
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
       - name: Run the backend tests
         run: bash .github/scripts/verify-backend.sh
 
   frontend:
-    if: ${{ vars.PERSONAL_GITHUB_CI_ENABLED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: Frontend build
-    runs-on: [personal-official]
-    container:
-      image: node:20-bookworm
-      options: --init --cpus 2 --memory 4g
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Trust the checked-out workspace
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Set up Node.js 20
+        # The verify script requires the Node major version the frontend image uses.
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
       - name: Build the frontend
         run: bash .github/scripts/verify-frontend.sh
