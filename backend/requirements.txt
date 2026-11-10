@@ -11,7 +11,7 @@ alembic==1.13.1
 psycopg2-binary==2.9.9
 
 # Redis and Celery
-redis==5.0.1
+redis==8.1.0
 celery[redis]==5.3.6
 
 # OAuth and security
