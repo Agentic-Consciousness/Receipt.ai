@@ -1,9 +1,8 @@
 """Tests for attachment hash stability and deduplication."""
 import hashlib
-import os
 import tempfile
-import pytest
 
+import app.services.attachment as attachment_module
 from app.services.attachment import AttachmentService
 
 
@@ -79,9 +78,9 @@ class TestStoragePathGeneration:
     def test_storage_path_structure(self, sync_session):
         """Storage path should use hash-based directory structure."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Mock the storage path
-            original_path = os.environ.get("ATTACHMENT_STORAGE_PATH", "")
-            os.environ["ATTACHMENT_STORAGE_PATH"] = tmpdir
+            # Settings are loaded once at import, so the env var alone is ignored.
+            original_path = attachment_module.settings.attachment_storage_path
+            attachment_module.settings.attachment_storage_path = tmpdir
 
             try:
                 service = AttachmentService(sync_session)
@@ -99,13 +98,13 @@ class TestStoragePathGeneration:
                 assert parts[2].endswith(".pdf")
 
             finally:
-                os.environ["ATTACHMENT_STORAGE_PATH"] = original_path
+                attachment_module.settings.attachment_storage_path = original_path
 
     def test_extension_preserved(self, sync_session):
         """File extension should be preserved in storage path."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            original_path = os.environ.get("ATTACHMENT_STORAGE_PATH", "")
-            os.environ["ATTACHMENT_STORAGE_PATH"] = tmpdir
+            original_path = attachment_module.settings.attachment_storage_path
+            attachment_module.settings.attachment_storage_path = tmpdir
 
             try:
                 service = AttachmentService(sync_session)
@@ -121,4 +120,4 @@ class TestStoragePathGeneration:
                 assert jpg_path.endswith(".jpg")
 
             finally:
-                os.environ["ATTACHMENT_STORAGE_PATH"] = original_path
+                attachment_module.settings.attachment_storage_path = original_path
