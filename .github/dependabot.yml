@@ -18,6 +18,10 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Odd-numbered Node releases never become LTS.
+      - dependency-name: "node"
+        versions: ["21.x", "23.x", "25.x", "27.x"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -27,6 +31,10 @@ updates:
       time: "09:00"
       timezone: "Australia/Sydney"
     open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -43,6 +51,10 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Held migrations: each needs its own planned change, not a routine bump.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"] # TypeScript 7
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -59,3 +71,11 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Major API changes held for a planned migration.
+      - dependency-name: "openai"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pytest-asyncio"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "python-dateutil"
+        update-types: ["version-update:semver-major"]
